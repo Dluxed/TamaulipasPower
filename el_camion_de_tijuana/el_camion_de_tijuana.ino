@@ -14,23 +14,27 @@ void loop() {
     int dotIndex = 0;
     int prevDotIndex = 0;
     int octetValue[4];
-    //uint32_t ip = 0xFFFFFFFF;
+    
+    uint32_t ip32bits = 0;
     for(int i=0; i<4; i++){
       dotIndex = ipString.indexOf('.', prevDotIndex); //busca punto a partir del punto anteriro
       String octet = ipString.substring(prevDotIndex, dotIndex);
       octetValue[i] = octet.toInt();
-      //ip += octetValue[i];
       
       Serial.println(octetValue[i]);
       prevDotIndex = dotIndex +1;
+    
+      if(i!=0){
+        ip32bits = (ip32bits << 8) | octetValue[i];        
+      }else{
+        ip32bits = octetValue[i];
+      }
     }
     
-    //Llama la funcion mascara
     int maskValue = maskString.toInt();    
-    uint32_t mascara = printMask(maskValue); 
-    //Serial.println(mascara);
-    //Serial.println(ip);
-    //printNetwork(mascara, )
+    uint32_t mascara = printMask(maskValue); //Llama la funcion mascara
+    
+    printNetwork(mascara, ip32bits);
     
     }
   }
@@ -50,9 +54,18 @@ void loop() {
     return mascara; //regresa el arreglo 
   }
 
-  void printNetwork(uint32_t mask, uint32_t ip){
-    uint32_t network = 0;
-    network = mask & ip;
-    Serial.println(network);
+  void printNetwork(uint32_t mask, uint32_t ip){    
+    byte network[4];
+    
+
+    Serial.print("La red es: ");
+    for(int i = 0; i<4; i++){
+      if(i!=0){
+        Serial.print(".");
+      }
+      network[i] = (mask >> (3 - i)*8) & (ip >> (3 - i)*8);
+      Serial.print(network[i]);  
+    }
+    
   }
 
