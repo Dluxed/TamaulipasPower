@@ -19,77 +19,21 @@ void loop() {
     String ipString = input.substring(0,input.indexOf('/'));
     String maskString = input.substring(input.indexOf('/')+1);
 
-    //Llama a los elementos de la ip
+    //Llama a los elementos de la address
     uint32_t ip = getIp(ipString);
     int maskValue = maskString.toInt();//Convierte string a entero
     uint32_t mascara = getMask(maskValue); //Llama la funcion mascara
     uint32_t network = getNetwork(mascara, ip); //Imprime la network
     
+    //Muestra el tipo de direccion
     addressType(ip, network, mascara);
+    /* NOTA: Debido al ciclo "while (Serial available)" el resultado se imprime
+    hasta la siguiente iteracion del ciclo... pero las luces jalan bien 
+    (☞ﾟヮﾟ)☞  */ 
     }
   }
 
-  void addressType(uint32_t ip, uint32_t network, uint32_t mask){
-    byte lastOctet = ip;
-    byte netOctet = network;
-    byte maskOctet = mask;    
-    
-    if( lastOctet == netOctet) {
-      while(Serial.available() == false){
-      digitalWrite(azul, HIGH);
-    delay(300);
-    digitalWrite(azul,LOW);
-    digitalWrite(verde,LOW);
-    digitalWrite(amarillo,LOW);
-    digitalWrite(rojo,LOW);
-    delay(300);
-      }
-      Serial.println("Es red");
-
-    }else if(lastOctet == netOctet + 1){
-      while(Serial.available() == false){
-      digitalWrite(azul, HIGH);
-      digitalWrite(verde, HIGH);
-      delay(300);
-      digitalWrite(azul,LOW);
-      digitalWrite(verde,LOW);
-      digitalWrite(amarillo,LOW);
-      digitalWrite(rojo,LOW);
-      delay(300);
-      }
-      Serial.println("Es gateway");
-    }else if(lastOctet == 255 - maskOctet){
-      while(Serial.available() == false){
-      digitalWrite(azul, HIGH);
-      digitalWrite(verde, HIGH);
-      digitalWrite(amarillo, HIGH);
-      digitalWrite(rojo, HIGH);
-      delay(300);
-      digitalWrite(azul,LOW);
-      digitalWrite(verde,LOW);
-      digitalWrite(amarillo,LOW);
-      digitalWrite(rojo,LOW);
-      delay(300);
-      }
-      Serial.println("Es broadcast");
-    }else{
-      while(Serial.available() == false){
-      digitalWrite(azul, HIGH);
-      digitalWrite(verde, HIGH);
-      digitalWrite(amarillo, HIGH);
-      
-      delay(300);
-      digitalWrite(azul,LOW);
-      digitalWrite(verde,LOW);
-      digitalWrite(amarillo,LOW);
-      digitalWrite(rojo,LOW);
-      delay(300);
-      }
-      Serial.println("Es dispositivo");      
-    }
-  delay(300);
-    }
-
+  // ---------------//  IP  //----------------------
   uint32_t getIp (String ip) {
     int dotIndex = 0;
     int prevDotIndex = 0;
@@ -113,7 +57,7 @@ void loop() {
     return ip32bits;  
   }
 
-
+  // ---------------//  MASK  //----------------------
   uint32_t getMask(int maskLenght){
     uint32_t mascara = 0xFFFFFFFF; //valor hex
     mascara = mascara << (32 - maskLenght); //Recorre la diferencia (Bits utilizables)
@@ -128,7 +72,8 @@ void loop() {
     Serial.println();  
     return mascara; //regresa la mascara 
   }
-
+  
+  // ---------------//  NETWORK  //-----------------------
   uint32_t getNetwork(uint32_t mask, uint32_t ip){    
     byte networkArr[4];
     uint32_t network;
@@ -147,4 +92,73 @@ void loop() {
     Serial.print("\n");
     return network;
   }
+
+  // Analiza eel tipo de direccion basandose en el ultimo octeto
+  void addressType(uint32_t ip, uint32_t network, uint32_t mask){
+    byte lastOctet = ip;
+    byte netOctet = network;
+    byte maskOctet = mask;    
+    
+    // ---------- Detecta si es red ------------ 
+    //Nota: Este segmento aun no funciona con subnets
+    if( lastOctet == netOctet) {
+      while(Serial.available() == false){
+      digitalWrite(azul, HIGH);
+    delay(300);
+    digitalWrite(azul,LOW);
+    digitalWrite(verde,LOW);
+    digitalWrite(amarillo,LOW);
+    digitalWrite(rojo,LOW);
+    delay(300);
+      }
+      Serial.println("Es red"); 
+      
+      // ---------- Detecta si es gateway ------------ 
+    }else if(lastOctet == netOctet + 1){
+      while(Serial.available() == false){
+      digitalWrite(azul, HIGH);
+      digitalWrite(verde, HIGH);
+      delay(300);
+      digitalWrite(azul,LOW);
+      digitalWrite(verde,LOW);
+      digitalWrite(amarillo,LOW);
+      digitalWrite(rojo,LOW);
+      delay(300);
+      }
+      Serial.println("Es gateway");
+      
+     // ---------- Detecta si es bradcast ------------ 
+    }else if((lastOctet + 1) % (256 - maskOctet) == 0){
+      while(Serial.available() == false){
+      digitalWrite(azul, HIGH);
+      digitalWrite(verde, HIGH);
+      digitalWrite(amarillo, HIGH);
+      digitalWrite(rojo, HIGH);
+      delay(300);
+      digitalWrite(azul,LOW);
+      digitalWrite(verde,LOW);
+      digitalWrite(amarillo,LOW);
+      digitalWrite(rojo,LOW);
+      delay(300);
+      }
+      Serial.println("Es broadcast");
+      
+      // ---------- Detecta si es dispositivo ------------ 
+    }else{
+      while(Serial.available() == false){
+      digitalWrite(azul, HIGH);
+      digitalWrite(verde, HIGH);
+      digitalWrite(amarillo, HIGH);
+      
+      delay(300);
+      digitalWrite(azul,LOW);
+      digitalWrite(verde,LOW);
+      digitalWrite(amarillo,LOW);
+      digitalWrite(rojo,LOW);
+      delay(300);
+      }
+      Serial.println("Es dispositivo");      
+    }
+  delay(300);
+    }
 
