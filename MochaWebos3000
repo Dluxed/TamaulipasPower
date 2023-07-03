@@ -1,0 +1,60 @@
+int led = 12;
+int pot = 0;
+int Avel = 0; //Pot auxiliar
+float vel;
+bool power = 0;
+int c = 0; //contador
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(led, OUTPUT);
+  Serial.println("Wenas noches, disfrute el led parpadiante :D");
+}
+
+void loop() {
+  if(Serial.available()){ //Lee constantemente el serial
+      String input = Serial.readStringUntil('\n');
+      if (input == "on"){
+        power = 1;
+      }else{
+        power = 0;
+      }
+  }
+  
+  if(power == 1){
+    pot = analogRead(A0);
+    
+    vel = map(pot, 0, 1023, 0, 10);
+
+    if(vel != Avel){
+      Avel = vel;
+      c = 0;
+    }
+
+    Serial.print("Velocidad es: ");
+    Serial.print(vel);
+    Serial.print("    Ciclo: ");
+    Serial.print(vel/2);
+        
+    if(c > vel*1000){
+      c -= vel*1000;
+    }
+
+    if(c < vel*1000/2){
+      digitalWrite(led, HIGH);
+    }else{
+      digitalWrite(led, LOW);
+    }
+    c += 100; 
+    Serial.print("    Contador: ");
+    Serial.println(c);
+
+    delay(100);
+  }else{
+    digitalWrite(led, LOW);
+    delay(100);
+  }
+
+  
+
+}
